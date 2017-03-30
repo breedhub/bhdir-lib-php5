@@ -9,19 +9,34 @@ require_once('bhdir/directory.php');
 
 $dir = new \bhdir\Directory();
 
-$val = $dir->get('/test/foo');
-if ($val === null)
-    print("null\n");
-else
-    print($val . "\n");
+print("Set: " . $dir->set('/foo/bar', 'test') . "\n");
+print("Get: " . $dir->get('/foo/bar') . "\n");
 
-$dir->set('/test/foo', 'new value');
+print("Set attr: " . $dir->set_attr('/foo/bar', 'custom', 123) . "\n");
+print("Get attr: " . $dir->get_attr('/foo/bar', 'custom') . "\n");
 
-$val = $dir->get('/test/foo');
-if ($val === null)
-    print("null\n");
-else
-    print($val . "\n");
+// get all: $dir->get_attr('/foo/bar');
+// delete: $dir->delete_attr('/foo/bar', 'custom');
 
-$dir->delete('/test/foo');
+print("LS: ");
+print_r($dir->ls('/foo'));
+
+$fd = fopen('/etc/shells', 'r');
+if (!$fd)
+    throw new Exception('Could not open file');
+print("Upload: " . $dir->upload('/foo/bar', $fd) . "\n");
+fclose($fd);
+
+$fd = fopen('/tmp/test', 'w');
+if (!$fd)
+    throw new Exception('Could not open file');
+$dir->download('/foo/bar', $fd);
+fclose($fd);
+
+// $dir->wait('/foo/bar');
+// $dir->touch('/foo/bar');
+
+// $dir->del_attr('/foo/bar', 'custom');
+// $dir->delete('/foo/bar');
+// $dir->rm('/foo/bar');
 ```
