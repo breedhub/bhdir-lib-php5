@@ -24,16 +24,19 @@ print_r($dir->ls('/foo'));
 $fd = fopen('/etc/shells', 'r');
 if (!$fd)
     throw new Exception('Could not open file');
-print("Upload: " . $dir->upload('/foo/bar', $fd) . "\n");
+print("Upload by fd: " . $dir->put_fd($fd, '/foo/bar') . "\n");
 fclose($fd);
 
-$fd = fopen('/tmp/test', 'w');
-if (!$fd)
-    throw new Exception('Could not open file');
-$dir->download('/foo/bar', $fd);
+print("Upload by path: " . $dir->put_file('/etc/shells', '/foo/bar') . "\n");
+
+// get descriptor
+$fd = $dir->get_fd('/foo/bar');
 fclose($fd);
 
-// $dir->wait('/foo/bar');
+// get file
+$dir->get_file('/foo/bar', '/tmp/test');
+
+/// $dir->wait('/foo/bar');
 // $dir->touch('/foo/bar');
 
 // $dir->del_attr('/foo/bar', 'custom');

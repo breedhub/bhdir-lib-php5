@@ -228,7 +228,7 @@ class Directory {
             throw new \Exception('Error: ' + $response['message']);
     }
 
-    public function upload($name, $fd) {
+    public function put_fd($fd, $name) {
         $contents = '';
         while (!feof($fd))
             $contents .= fread($fd, 8192);
@@ -254,7 +254,16 @@ class Directory {
         return $response['results'][0];
     }
 
-    public function download($name, $fd) {
+    public function put_file($filename, $name) {
+        $fd = fopen($filename, 'r');
+        if (!$fd)
+            throw new \Exception('Could not open ' . $filename);
+        $result = $this->put_fd($fd, $name);
+        fclose($fd);
+        return $result;
+    }
+
+    public function get_fd($name, $fd = null) {
         $request = [
             'id' => uniqid('', true),
             'command' => 'download',
@@ -272,6 +281,34 @@ class Directory {
         if (!$response['success'])
             throw new \Exception('Error: ' + $response['message']);
 
-        fwrite($fd, base64_decode($response['results'][0]));
+        $contents = base64_decode($response['results'][0]);
+
+        if (!$fd) {
+            $fd = fopen('/tmp/' . $this->random_filename(), 'w+');
+            if (!$fd)
+                throw new \Exception('Could not open temporary file');
+        }
+
+        fwrite($fd, $contents);
+        fseek($fd, 0);
+
+        return $fd;
+    }
+
+    public function get_file($name, $filename) {
+        $fd = fopen($filename, 'w');
+        if (!$fd)
+            throw new \Exception('Could not open ' . $filename);
+        $this->get_fd($name, $fd);
+        fclose($fd);
+    }
+
+    private function random_filename() {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < 8; $i++)
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        return $randomString;
     }
 }
