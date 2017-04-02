@@ -249,7 +249,7 @@ class Directory {
             throw new \Exception('Error: ' + $response['message']);
     }
 
-    public function put_fd($fd, $name) {
+    public function put_fd($fd, $name, $save_name = null) {
         $contents = '';
         while (!feof($fd))
             $contents .= fread($fd, 8192);
@@ -259,7 +259,8 @@ class Directory {
             'command' => 'upload',
             'args' => [
                 $name,
-                base64_encode($contents)
+                base64_encode($contents),
+                $save_name
             ]
         ];
 
@@ -279,7 +280,7 @@ class Directory {
         $fd = fopen($filename, 'r');
         if (!$fd)
             throw new \Exception('Could not open ' . $filename);
-        $result = $this->put_fd($fd, $name);
+        $result = $this->put_fd($fd, $name, basename($filename));
         fclose($fd);
         return $result;
     }
