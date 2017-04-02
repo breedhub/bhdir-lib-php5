@@ -20,6 +20,7 @@ print("Get attr: " . $dir->get_attr('/foo/bar', 'custom') . "\n");
 
 print("LS: ");
 print_r($dir->ls('/foo'));
+print("Exists: " . $dir->exists('/foo') . "\n");
 
 $fd = fopen('/etc/shells', 'r');
 if (!$fd)

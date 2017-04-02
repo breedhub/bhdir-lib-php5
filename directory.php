@@ -116,6 +116,27 @@ class Directory {
             throw new \Exception('Error: ' + $response['message']);
     }
 
+    public function exists($name) {
+        $request = [
+            'id' => uniqid('', true),
+            'command' => 'exists',
+            'args' => [
+                $name
+            ]
+        ];
+
+        $this->socket->send(json_encode($request));
+        $response = json_decode($this->socket->receive(), true);
+
+        if ($response['id'] != $request['id'])
+            throw new \Exception('Invalid response from server');
+
+        if (!$response['success'])
+            throw new \Exception('Error: ' + $response['message']);
+
+        return $response['results'][0];
+    }
+
     public function wait($name, $timeout = 0) {
         $request = [
             'id' => uniqid('', true),
