@@ -6,9 +6,38 @@ require('socket.php');
 
 class Directory {
     private $socket;
+    private $folder;
+    private $dir;
 
     public function __construct($path = null) {
         $this->socket = new Socket($path);
+        $this->folder = null;
+        $this->dir = '/';
+    }
+
+    public function use_folder($folder) {
+        $this->folder = $folder;
+    }
+
+    public function cd($directory) {
+        if ($directory == '/') {
+            $this->dir = '/';
+        } else {
+            if ($directory[strlen($directory)-1] != '/')
+                $directory = $directory . '/';
+            if ($directory[0] == '/')
+                $this->dir = $directory;
+            else
+                $this->dir = $this->dir . $directory;
+        }
+
+        return $this->dir;
+    }
+
+    public function cwd() {
+        if ($this->dir == '/')
+            return $this->dir;
+        return substr($this->dir, 0, strlen($this->dir)-1);
     }
 
     public function ls($name) {
@@ -16,7 +45,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'ls',
             'args' => [
-                $name
+                $this->normalize($name)
             ]
         ];
 
@@ -40,7 +69,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'set',
             'args' => [
-                $name,
+                $this->normalize($name),
                 $value
             ]
         ];
@@ -62,7 +91,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'get',
             'args' => [
-                $name
+                $this->normalize($name)
             ]
         ];
 
@@ -83,7 +112,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'del',
             'args' => [
-                $name
+                $this->normalize($name)
             ]
         ];
 
@@ -102,7 +131,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'rm',
             'args' => [
-                $name
+                $this->normalize($name)
             ]
         ];
 
@@ -121,7 +150,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'exists',
             'args' => [
-                $name
+                $this->normalize($name)
             ]
         ];
 
@@ -142,7 +171,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'wait',
             'args' => [
-                $name,
+                $this->normalize($name),
                 round($timeout * 1000)
             ]
         ];
@@ -167,7 +196,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'touch',
             'args' => [
-                $name
+                $this->normalize($name)
             ]
         ];
 
@@ -189,7 +218,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'set-attr',
             'args' => [
-                $var_name,
+                $this->normalize($var_name),
                 $attr_name,
                 $value
             ]
@@ -212,7 +241,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'get-attr',
             'args' => [
-                $var_name,
+                $this->normalize($var_name),
                 $attr_name
             ]
         ];
@@ -234,7 +263,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'del-attr',
             'args' => [
-                $var_name,
+                $this->normalize($var_name),
                 $attr_name
             ]
         ];
@@ -258,7 +287,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'upload',
             'args' => [
-                $name,
+                $this->normalize($name),
                 base64_encode($contents),
                 $save_name
             ]
@@ -290,7 +319,7 @@ class Directory {
             'id' => uniqid('', true),
             'command' => 'download',
             'args' => [
-                $name
+                $this->normalize($name)
             ]
         ];
 
@@ -323,6 +352,22 @@ class Directory {
             throw new \Exception('Could not open ' . $filename);
         $this->get_fd($name, $fd);
         fclose($fd);
+    }
+
+    private function normalize($var_name) {
+        if (strpos($var_name, ':') !== false)
+            return $var_name;
+
+        $result = '';
+        if ($this->folder !== null)
+            $result = $this->folder . ':';
+
+        if ($var_name[0] == '/')
+            $result = $result . $var_name;
+        else
+            $result = $result . $this->dir . $var_name;
+
+        return $result;
     }
 
     private function random_filename() {
