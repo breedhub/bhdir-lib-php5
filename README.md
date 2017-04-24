@@ -9,6 +9,9 @@ require_once('bhdir/directory.php');
 
 $dir = new \bhdir\Directory();
 
+$dir->use_folder('sync');
+$dir->cd('/');
+
 print("Set: " . $dir->set('/foo/bar', 'test') . "\n");
 print("Get: " . $dir->get('/foo/bar') . "\n");
 
